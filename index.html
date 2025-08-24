@@ -1,0 +1,1190 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pedido Multi-Loja</title>
+    <style>
+        :root {
+            --bg: #0b1020;
+            --panel: #121a2b;
+            --muted: #8ea3b0;
+            --text: #eaf2f5;
+            --accent: #4ac1ff;
+            --ok: #3ddc97;
+            --warn: #ffcf5a;
+            --danger: #ff6b6b;
+            --card: #0f1626;
+            --line: #1d2942;
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            font-family: Inter, system-ui, Segoe UI, Roboto, Arial, sans-serif;
+            background: linear-gradient(180deg, #0b1020, #0a0f1d 60%, #091025);
+            color: var(--text)
+        }
+
+        .wrap {
+            max-width: 1200px;
+            margin: auto;
+            padding: 24px
+        }
+
+        h1 {
+            font-size: 24px;
+            margin: 0 0 12px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap
+        }
+
+        .badge {
+            font-size: 12px;
+            padding: 2px 8px;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            color: #a9bed1;
+            white-space: nowrap
+        }
+
+        .toolbar {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 12px;
+            margin-bottom: 16px
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            padding: 12px;
+            border-radius: 14px
+        }
+
+        label {
+            font-size: 12px;
+            color: var(--muted)
+        }
+
+        select,
+        input {
+            background: #0a1222;
+            color: #eaf2f5;
+            border: 1px solid #203251;
+            border-radius: 10px;
+            padding: 8px 10px;
+            outline: none
+        }
+
+        button {
+            border: 1px solid #244166;
+            background: #0f2038;
+            color: #e6f7ff;
+            border-radius: 12px;
+            padding: 10px 14px;
+            cursor: pointer
+        }
+
+        button:hover {
+            filter: brightness(1.08)
+        }
+
+        .forn-box {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-wrap: wrap
+        }
+
+        .icon-btn {
+            background: transparent;
+            border: 1px dashed #274060;
+            color: #b7d0e6;
+            padding: 6px;
+            border-radius: 10px;
+            cursor: pointer
+        }
+
+        .icon-btn:hover {
+            border-style: solid
+        }
+
+        .hint {
+            font-size: 12px;
+            color: var(--muted)
+        }
+
+        .inp-perc {
+            width: 92px;
+            text-align: right
+        }
+
+        .inp-perc::-webkit-outer-spin-button,
+        .inp-perc::-webkit-inner-spin-button {
+            appearance: none;
+            margin: 0
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 12px;
+            margin: 8px 0 18px
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            padding: 12px
+        }
+
+        .card h3 {
+            margin: 0 0 6px;
+            font-size: 14px;
+            color: #c6e2ff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px
+        }
+
+        .card .big {
+            font-size: 22px;
+            font-weight: 700
+        }
+
+        .muted {
+            color: var(--muted)
+        }
+
+        .form {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 12px
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1.6fr .6fr repeat(var(--n-lojas), .6fr) auto;
+            gap: 8px;
+            align-items: end
+        }
+
+        .grid .col {
+            display: flex;
+            flex-direction: column;
+            gap: 6px
+        }
+
+        .table {
+            margin-top: 14px;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            overflow: hidden
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse
+        }
+
+        thead {
+            background: #0f1a2e
+        }
+
+        th,
+        td {
+            padding: 10px 8px;
+            border-bottom: 1px solid var(--line);
+            text-align: left
+        }
+
+        th {
+            font-size: 12px;
+            color: #a9bed1
+        }
+
+        td.num {
+            text-align: right
+        }
+
+        tbody tr:hover {
+            background: #0c1528
+        }
+
+        .row-actions {
+            display: flex;
+            gap: 6px;
+            justify-content: center
+        }
+
+        .footer {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 10px;
+            color: var(--muted)
+        }
+
+        @media (max-width: 980px) {
+            .grid {
+                grid-template-columns: 1.2fr .6fr repeat(var(--n-lojas), .6fr) auto
+            }
+
+            .wrap {
+                padding: 16px
+            }
+        }
+
+        /* input do nome da loja dentro do card */
+        .card h3 .loja-nome {
+            background: transparent;
+            color: #c6e2ff;
+            border: 1px dashed #274060;
+            border-radius: 8px;
+            padding: 2px 6px;
+            font: inherit;
+            min-width: 120px;
+            max-width: 65%;
+        }
+
+        .card h3 .loja-nome:focus {
+            outline: none;
+            border-style: solid;
+            background: #0a1222
+        }
+
+        /* ===== Modal Histórico ===== */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .45);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999
+        }
+
+        .modal {
+            width: min(900px, 92vw);
+            max-height: 85vh;
+            overflow: auto;
+            background: #0e1628;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 14px
+        }
+
+        .modal h2 {
+            margin: 0 0 10px;
+            font-size: 18px;
+            color: #d7ebff
+        }
+
+        .modal .row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 10px
+        }
+
+        .modal input[type="search"] {
+            flex: 1
+        }
+
+        .modal table {
+            width: 100%;
+            border-collapse: collapse
+        }
+
+        .modal th,
+        .modal td {
+            padding: 8px;
+            border-bottom: 1px solid #203251
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 2px 6px;
+            border: 1px solid #244166;
+            border-radius: 999px;
+            color: #b7d0e6;
+            font-size: 12px
+        }
+
+        /* === Sync UI === */
+        #syncKey {
+            width: 220px
+        }
+
+        #syncBadge.bad {
+            color: #ffb6b6;
+            border-color: #5a2331
+        }
+
+        #syncBadge.good {
+            color: #b7ffcc;
+            border-color: #1f6a46
+        }
+
+        /* === Ajuste: cada coluna de QTD com largura fixa === */
+        .grid {
+            /* Descrição | Valor | n colunas de QTD (cada uma = 80px) | Botão */
+            grid-template-columns: 2fr .8fr repeat(var(--n-lojas), 60px) auto;
+        }
+
+        /* Inputs preenchem a coluna */
+        #fDesc,
+        #fValor {
+            width: 100%;
+        }
+
+        [id^="fQtd"] {
+            width: 80%;
+            text-align: right;
+        }
+
+        /* (Opcional) No celular fica um pouco mais estreito */
+        @media (max-width: 600px) {
+            .grid {
+                grid-template-columns: 1.6fr .8fr repeat(var(--n-lojas), 60px) auto;
+            }
+        }
+
+        /* === Valor unitário com largura fixa (cole no FINAL do <style>) === */
+        :root {
+            --valW: 90px;
+            /* largura no desktop: ajuste aqui */
+            --valW-mobile: 80px;
+            /* largura no celular */
+        }
+
+        /* FORM: 2ª coluna (Valor) fixa; QTDs seguem como você já definiu */
+        .grid {
+            /* Descrição | Valor |  QTDs (ex.: 90px cada)  | Botão */
+            grid-template-columns: 2fr var(--valW) repeat(var(--n-lojas), 90px) auto;
+        }
+
+        /* Input do Valor ocupa toda a coluna e alinha à direita */
+        #fValor {
+            width: 100%;
+            text-align: right;
+        }
+
+        /* TABELA: fixa a coluna "Valor Unit." (2ª coluna) */
+        thead th:nth-child(2),
+        tbody td:nth-child(2) {
+            width: var(--valW);
+            min-width: var(--valW);
+        }
+
+        tbody td:nth-child(2) {
+            text-align: right;
+        }
+
+        /* Mobile: um pouco mais estreito */
+        @media (max-width: 600px) {
+            .grid {
+                grid-template-columns: 1.6fr var(--valW-mobile) repeat(var(--n-lojas), 72px) auto;
+            }
+
+            thead th:nth-child(2),
+            tbody td:nth-child(2) {
+                width: var(--valW-mobile);
+                min-width: var(--valW-mobile);
+            }
+        }
+
+        /* empilha: label em cima, input embaixo */
+        .stack {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .stack>label {
+            font-size: 12px;
+            color: var(--muted);
+            margin-left: 2px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrap">
+        <h1>
+            Pedido Multi-Loja
+            <span class="badge" id="statusBadge">offline • localStorage</span>
+            <span class="badge" id="pedidoBadge">Pedido: —</span>
+        </h1>
+
+        <!-- TOPO -->
+        <div class="toolbar">
+            <div class="controls">
+                <!-- Fornecedor + Desconto -->
+                <div>
+                    <label for="fornecedorSel">Fornecedor</label><br>
+                    <div class="forn-box">
+                        <select id="fornecedorSel"></select>
+                        <button class="icon-btn" id="btnFornEdit" title="Editar fornecedor">✏️</button>
+                        <button class="icon-btn" id="btnFornAdd" title="Adicionar fornecedor">＋</button>
+                        <div class="stack">
+                            <label for="fornDesc">Desconto (%)</label>
+                            <input id="fornDesc" class="inp-perc" type="number" inputmode="decimal"
+                                   step="0.1" min="0" max="100" placeholder="0" title="Desconto deste fornecedor (%)">
+                          </div>
+                          
+                    </div>
+                    <div class="hint">Desconto é aplicado nos totais e relatórios desse fornecedor.</div>
+                </div>
+
+                <!-- Número de lojas -->
+                <div>
+                    <label for="nLojas">Número de lojas</label><br>
+                    <select id="nLojas">
+                        <option>1</option>
+                        <option>2</option>
+                        <option>3</option>
+                        <option>4</option>
+                        <option>5</option>
+                        <option>6</option>
+                        <option>7</option>
+                        <option selected>8</option>
+                    </select>
+                </div>
+
+                <!-- Sincronização -->
+                <div>
+                    <label>Sincronização</label><br>
+                    <div class="forn-box">
+                        <input id="syncKey" placeholder="Chave de sincronização" />
+                        <button id="btnSyncToggle">Conectar</button>
+                        <span class="badge" id="syncBadge">sync: desligado</span>
+                    </div>
+                    <div class="hint">Use a <b>mesma chave</b> em todos os dispositivos para compartilhar <b>tudo</b> em
+                        tempo real.</div>
+                </div>
+
+                <!-- Funções -->
+                <div>
+                    <label>Funções</label><br>
+                    <button id="btnRelGeral">Relatório geral</button>
+                    <button id="btnArquivar">Arquivar pedido</button>
+                    <button id="btnHistorico">Histórico</button>
+                    <button id="btnNovoId">Novo pedido</button>
+                    <button id="btnSalvar">Salvar</button>
+                    <button id="btnLimpar" style="border-color:var(--danger);color:#ffdede">Limpar itens</button>
+                </div>
+
+                <div class="hint">Tudo sincroniza: fornecedores (com desconto), lojas salvas, pedido atual (lojas,
+                    itens, n° de lojas, fornecedor selecionado) e histórico. 💡</div>
+            </div>
+            <div></div>
+        </div>
+
+        <!-- CARDS -->
+        <div class="cards" id="cards"></div>
+
+        <!-- FORM -->
+        <div class="form">
+            <div class="grid" id="formGrid">
+                <div class="col">
+                    <label>Descrição</label>
+                    <input id="fDesc" placeholder="Ex.: Camisa estampada" />
+                </div>
+                <div class="col">
+                    <label>Valor unitário (R$)</label>
+                    <input id="fValor" inputmode="decimal" placeholder="10,50" />
+                </div>
+                <div class="col" id="formActions">
+                    <button id="btnAdd">Adicionar produto</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TABELA -->
+        <div class="table">
+            <table>
+                <thead>
+                    <tr id="headRow">
+                        <th style="min-width:300px">Descrição</th>
+                        <th class="num" style="min-width:110px">Valor Unit.</th>
+                        <th style="text-align:center;min-width:110px">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody"></tbody>
+            </table>
+        </div>
+
+        <div class="footer"><span id="resumoGlobal" class="muted">Itens: 0 • Total (c/ desc.): R$ 0,00</span></div>
+
+        <!-- Datalist para sugestões de lojas salvas -->
+        <datalist id="lojasSugeridas"></datalist>
+    </div>
+
+    <!-- Modal Histórico -->
+    <div class="modal-backdrop" id="histModal">
+        <div class="modal">
+            <h2>Histórico de pedidos</h2>
+            <div class="row">
+                <input id="histSearch" type="search" placeholder="Buscar por ID, fornecedor ou loja..." />
+                <button id="histFechar">Fechar</button>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Criado</th>
+                        <th>Fornecedores</th>
+                        <th>Lojas</th>
+                        <th>Itens</th>
+                        <th>Total (c/ desc.)</th>
+                        <th style="text-align:center">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="histBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // ===== Utils =====
+        const fmt = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+        const num = (v) => { if (v === undefined || v === null) return 0; if (typeof v === 'number') return v; v = ('' + v).replace(/\./g, '').replace(',', '.'); const n = parseFloat(v); return isNaN(n) ? 0 : n };
+        const moneyInput = (el) => { el.addEventListener('blur', () => { el.value = num(el.value).toFixed(2).replace('.', ',') }) };
+        const escapeHtml = (s) => (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const escapeAttr = (s) => (s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&gt;');
+        const dedupe = (arr) => [...new Map(arr.map(v => [v.trim().toLowerCase(), v.trim()])).values()].filter(Boolean);
+        const nowISO = () => new Date().toISOString();
+        function flashSaved(msg = 'salvo') { const b = document.getElementById('statusBadge'); const old = b.textContent; b.textContent = msg; setTimeout(() => b.textContent = old, 1200); }
+        function genPedidoId() { const d = new Date(); const p = n => String(n).padStart(2, '0'); const r = Math.random().toString(16).slice(2, 6).toUpperCase(); return `PD-${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}-${p(d.getHours())}h${p(d.getMinutes())}m${p(d.getSeconds())}s-${r}` }
+
+        // ===== Estado =====
+        let state = {
+            pedidoId: null, criadoEm: null,
+            nLojas: 8,
+            itens: [],                   // {desc, valor, qtd:[...], forn}
+            fornecedores: [{ nome: "Fornecedor", desconto: 0 }],
+            fornecedorAtual: 0,
+            lojas: [],
+            lojasSalvas: []
+        };
+        const MAX = 8;
+
+        // Storage Keys
+        const STORAGE_KEY = 'pedido-multiloja-v5';
+        const HIST_KEY = 'pedido-multiloja-historico';
+        const SYNC_KEY_LS = 'pedido-multiloja-sync-key';
+
+        // DOM
+        const nLojasSel = document.getElementById('nLojas');
+        const cards = document.getElementById('cards');
+        const formGrid = document.getElementById('formGrid');
+        const headRow = document.getElementById('headRow');
+        const tbody = document.getElementById('tbody');
+        const resumoGlobal = document.getElementById('resumoGlobal');
+        const fDesc = document.getElementById('fDesc');
+        const fValor = document.getElementById('fValor'); moneyInput(fValor);
+        const btnAdd = document.getElementById('btnAdd');
+        const btnSalvar = document.getElementById('btnSalvar');
+        const btnLimpar = document.getElementById('btnLimpar');
+        const btnRelGeral = document.getElementById('btnRelGeral');
+        const fornecedorSel = document.getElementById('fornecedorSel');
+        const fornDesc = document.getElementById('fornDesc');
+        const btnFornAdd = document.getElementById('btnFornAdd');
+        const btnFornEdit = document.getElementById('btnFornEdit');
+        const pedidoBadge = document.getElementById('pedidoBadge');
+
+        // Histórico modal
+        const histModal = document.getElementById('histModal');
+        const histBody = document.getElementById('histBody');
+        const histSearch = document.getElementById('histSearch');
+        const histFechar = document.getElementById('histFechar');
+        const btnHistorico = document.getElementById('btnHistorico');
+        const btnArquivar = document.getElementById('btnArquivar');
+        const btnNovoId = document.getElementById('btnNovoId');
+
+        const datalistLojas = document.getElementById('lojasSugeridas');
+
+        // ===== Persistência local =====
+        function save() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+            if (window.syncSchedule) window.syncSchedule(); // <== agenda envio p/ nuvem
+        }
+        function load() { const raw = localStorage.getItem(STORAGE_KEY); if (raw) { try { state = JSON.parse(raw); } catch { } } }
+        function loadHistorico() { const raw = localStorage.getItem(HIST_KEY); try { return raw ? JSON.parse(raw) : [] } catch { return [] } }
+        function saveHistorico(arr) { localStorage.setItem(HIST_KEY, JSON.stringify(arr)); }
+
+        // ===== Helpers =====
+        function migrateFornecedores() {
+            if (!Array.isArray(state.fornecedores)) state.fornecedores = [{ nome: 'Fornecedor', desconto: 0 }];
+            state.fornecedores = state.fornecedores.map(f => {
+                if (typeof f === 'string') return { nome: f, desconto: 0 };
+                if (typeof f === 'object') { return { nome: f.nome ?? 'Fornecedor', desconto: (typeof f.desconto === 'number' ? f.desconto : 0) }; }
+                return { nome: 'Fornecedor', desconto: 0 };
+            });
+            if (typeof state.fornecedorAtual !== 'number') state.fornecedorAtual = 0;
+        }
+        function ensurePedidoId() { if (!state.pedidoId) state.pedidoId = genPedidoId(); if (!state.criadoEm) state.criadoEm = nowISO(); pedidoBadge.textContent = `Pedido: ${state.pedidoId}`; }
+        function ensureLojasLen() { if (!Array.isArray(state.lojas)) state.lojas = []; for (let i = state.lojas.length; i < state.nLojas; i++) { state.lojas[i] = `Loja ${i + 1}` } if (state.lojas.length > state.nLojas) state.lojas = state.lojas.slice(0, state.nLojas) }
+        function syncItemQtdLengths() { state.itens.forEach(it => { if (!Array.isArray(it.qtd)) it.qtd = []; for (let i = it.qtd.length; i < state.nLojas; i++) { it.qtd[i] = 0 } if (it.qtd.length > state.nLojas) it.qtd = it.qtd.slice(0, state.nLojas); if (typeof it.forn !== 'number') it.forn = 0; }) }
+        function renderLojasDatalist() { datalistLojas.innerHTML = ''; (state.lojasSalvas || []).forEach(nome => { const opt = document.createElement('option'); opt.value = nome; datalistLojas.appendChild(opt); }); }
+        function addLojaSalva(nome) {
+            const clean = (nome || '').trim(); if (!clean) return false;
+            if (!Array.isArray(state.lojasSalvas)) state.lojasSalvas = [];
+            const exists = state.lojasSalvas.some(x => x.toLowerCase() === clean.toLowerCase());
+            if (!exists) {
+                state.lojasSalvas.push(clean);
+                state.lojasSalvas = dedupe(state.lojasSalvas);
+                renderLojasDatalist(); save();
+                return true;
+            }
+            return false;
+        }
+        const fornecedorNome = (i) => (state.fornecedores?.[i]?.nome) ?? `Fornecedor ${i}`;
+        const fornecedorDesc = (i) => Math.max(0, Math.min(100, (state.fornecedores?.[i]?.desconto) || 0));
+
+        // ===== UI Dinâmica =====
+        function renderHeaders() {
+            headRow.innerHTML = '<th style="min-width:300px">Descrição</th><th class="num" style="min-width:110px">Valor Unit.</th>';
+            for (let i = 0; i < state.nLojas; i++) {
+                const th = document.createElement('th'); th.className = 'num';
+                const nome = state.lojas?.[i] || `Loja ${i + 1}`; th.textContent = `${nome} (Qtd)`; headRow.appendChild(th);
+            }
+            const thA = document.createElement('th'); thA.style.textAlign = 'center'; thA.textContent = 'Ações'; headRow.appendChild(thA);
+            document.documentElement.style.setProperty('--n-lojas', state.nLojas);
+        }
+        function renderCards() {
+            cards.innerHTML = '';
+            const { totais, contagens } = calculaTotaisComDesconto();
+            for (let i = 0; i < state.nLojas; i++) {
+                const nome = state.lojas?.[i] || `Loja ${i + 1}`;
+                const total = totais[i] || 0; const itens = contagens[i] || 0; const media = itens ? (total / itens) : 0;
+                const card = document.createElement('div'); card.className = 'card';
+                card.innerHTML = `
+          <h3>
+            <input class="loja-nome" list="lojasSugeridas" data-loja="${i}" value="${escapeAttr(nome)}" title="Digite o nome da loja (com sugestões)" />
+            <span style="display:flex;gap:6px;align-items:center">
+              <button class="icon-btn" title="Imprimir ${escapeAttr(nome)}" onclick="printLoja(${i})">🖨️</button>
+              <button class="icon-btn loja-edit" data-loja="${i}" title="Focar no nome da loja">✏️</button>
+              <button class="icon-btn loja-salvar" data-loja="${i}" title="Salvar este nome nas Lojas salvas">＋ Salvar</button>
+            </span>
+          </h3>
+          <div class="big">${fmt.format(total)}</div>
+          <div class="muted">Itens: ${itens} • Média (c/ desc.): ${fmt.format(media)}</div>
+        `;
+                cards.appendChild(card);
+            }
+        }
+        function renderFormInputs() {
+            [...formGrid.querySelectorAll('.qtd-loja')].forEach(n => n.remove());
+            for (let i = 0; i < state.nLojas; i++) {
+                const col = document.createElement('div'); col.className = 'col qtd-loja';
+                const nome = state.lojas?.[i] || `Loja ${i + 1}`;
+                col.innerHTML = `<label>${escapeHtml(nome)} (Qtd)</label><input inputmode="decimal" id="fQtd${i}" placeholder="0" />`;
+                formGrid.insertBefore(col, document.getElementById('formActions'));
+            }
+        }
+        function renderBody() {
+            tbody.innerHTML = '';
+            state.itens.forEach((it, idx) => {
+                const tr = document.createElement('tr');
+                const tdDesc = document.createElement('td'); tdDesc.textContent = it.desc; tr.appendChild(tdDesc);
+                const tdVal = document.createElement('td'); tdVal.className = 'num'; tdVal.textContent = fmt.format(it.valor); tr.appendChild(tdVal);
+                for (let i = 0; i < state.nLojas; i++) { const td = document.createElement('td'); td.className = 'num'; td.textContent = (it.qtd[i] || 0).toLocaleString('pt-BR'); tr.appendChild(td); }
+                const tdA = document.createElement('td'); tdA.style.textAlign = 'center';
+                tdA.innerHTML = `<div class="row-actions">
+            <button type="button" class="icon-btn" title="Editar" data-action="edit" data-idx="${idx}">✏️</button>
+            <button type="button" class="icon-btn" title="Excluir" data-action="delete" data-idx="${idx}">🗑️</button>
+          </div>`;
+                tr.appendChild(tdA); tbody.appendChild(tr);
+            });
+            atualizaResumoGlobal();
+        }
+        function calculaTotaisComDesconto() {
+            const totais = Array(state.nLojas).fill(0), contagens = Array(state.nLojas).fill(0);
+            state.itens.forEach(it => {
+                const d = fornecedorDesc(it.forn ?? 0), fator = (100 - d) / 100;
+                for (let i = 0; i < state.nLojas; i++) { const q = num(it.qtd[i] || 0); if (q > 0) { contagens[i]++; totais[i] += q * num(it.valor) * fator } }
+            });
+            return { totais, contagens };
+        }
+        function atualizaResumoGlobal() {
+            const { totais } = calculaTotaisComDesconto();
+            const totalGeral = totais.reduce((a, b) => a + b, 0);
+            resumoGlobal.textContent = `Pedido ${state.pedidoId || '—'} • Itens: ${state.itens.length} • Total (c/ desc.): ${fmt.format(totalGeral)}`;
+        }
+
+        // ===== Fornecedor =====
+        function renderFornecedores() {
+            fornecedorSel.innerHTML = '';
+            (state.fornecedores || []).forEach((f, idx) => {
+                const opt = document.createElement('option'); opt.value = idx; opt.textContent = f?.nome || `Fornecedor ${idx}`; fornecedorSel.appendChild(opt);
+            });
+            if (typeof state.fornecedorAtual !== 'number') state.fornecedorAtual = 0;
+            const idxSel = Math.min(state.fornecedorAtual, (state.fornecedores || []).length - 1);
+            fornecedorSel.value = String(Math.max(0, idxSel));
+            state.fornecedorAtual = parseInt(fornecedorSel.value) || 0;
+            fornDesc.value = String(((state.fornecedores?.[state.fornecedorAtual]?.desconto) || 0)).replace('.', ',');
+        }
+
+        // ===== Eventos: cards (nome de loja) =====
+        cards.addEventListener('click', (ev) => {
+            const btn = ev.target.closest('button.loja-edit'); if (!btn) return;
+            const idx = parseInt(btn.getAttribute('data-loja'), 10);
+            const inp = cards.querySelector(`input.loja-nome[data-loja="${idx}"]`); if (inp) { inp.focus(); inp.select(); }
+        });
+        cards.addEventListener('click', (ev) => {
+            const btn = ev.target.closest('button.loja-salvar'); if (!btn) return;
+            const idx = parseInt(btn.getAttribute('data-loja'), 10);
+            const inp = cards.querySelector(`input.loja-nome[data-loja="${idx}"]`);
+            if (!inp) return; const nome = (inp.value || '').trim();
+            if (!nome) { alert('Digite um nome para salvar.'); inp.focus(); return; }
+            const added = addLojaSalva(nome);
+            if (added) flashSaved('loja salva ✓'); else flashSaved('já existia ✓');
+        });
+        cards.addEventListener('input', (ev) => {
+            const inp = ev.target.closest('input.loja-nome'); if (!inp) return;
+            const idx = parseInt(inp.getAttribute('data-loja'), 10); if (Number.isNaN(idx)) return;
+            const nome = (inp.value || '').trim() || `Loja ${idx + 1}`;
+            if (!Array.isArray(state.lojas)) state.lojas = []; state.lojas[idx] = nome;
+            const ths = headRow.querySelectorAll('th'); const idxTh = 2 + idx; if (ths[idxTh]) ths[idxTh].textContent = `${nome} (Qtd)`;
+            const labels = formGrid.querySelectorAll('.qtd-loja label'); if (labels[idx]) labels[idx].textContent = `${nome} (Qtd)`;
+            save();
+        });
+        cards.addEventListener('focusout', (ev) => { const inp = ev.target.closest('input.loja-nome'); if (!inp) return; save(); });
+
+        // ===== Ações gerais =====
+        btnAdd.addEventListener('click', () => {
+            const desc = fDesc.value.trim(); const valor = num(fValor.value);
+            if (!desc) { alert('Informe a descrição'); fDesc.focus(); return }
+            const qtd = []; for (let i = 0; i < state.nLojas; i++) { const el = document.getElementById('fQtd' + i); qtd.push(num(el.value)); }
+            const forn = state.fornecedorAtual || 0;
+            state.itens.push({ desc, valor, qtd, forn });
+            fDesc.value = ''; fValor.value = ''; for (let i = 0; i < state.nLojas; i++) { const el = document.getElementById('fQtd' + i); if (el) el.value = ''; }
+            renderBody(); renderCards(); save();
+        });
+
+        btnSalvar.addEventListener('click', () => { save(); flashSaved('salvo ✓'); });
+
+        btnLimpar.addEventListener('click', () => { if (!confirm('Limpar TODOS os itens do pedido atual?')) return; state.itens = []; save(); renderBody(); renderCards(); });
+
+        // Número de lojas
+        nLojasSel.addEventListener('change', () => {
+            state.nLojas = Math.min(MAX, Math.max(1, parseInt(nLojasSel.value) || 8));
+            ensureLojasLen(); syncItemQtdLengths();
+            renderHeaders(); renderFormInputs(); renderBody(); renderCards(); save();
+        });
+
+        // Fornecedor: seleção, add, edit, desconto
+        fornecedorSel.addEventListener('change', () => { state.fornecedorAtual = parseInt(fornecedorSel.value) || 0; fornDesc.value = String(((state.fornecedores?.[state.fornecedorAtual]?.desconto) || 0)).replace('.', ','); save(); });
+        btnFornAdd.addEventListener('click', () => {
+            const nome = prompt('Nome do fornecedor:', ''); if (!nome) return;
+            state.fornecedores.push({ nome: nome.trim(), desconto: 0 });
+            state.fornecedorAtual = state.fornecedores.length - 1;
+            renderFornecedores(); renderBody(); renderCards(); save();
+        });
+        btnFornEdit.addEventListener('click', () => {
+            if (!state.fornecedores.length) return;
+            const atual = fornecedorNome(state.fornecedorAtual);
+            const nome = prompt('Editar fornecedor:', atual); if (nome === null) return;
+            const novo = nome.trim(); if (!novo) return;
+            state.fornecedores[state.fornecedorAtual].nome = novo;
+            renderFornecedores(); renderBody(); renderCards(); save();
+        });
+        fornDesc.addEventListener('blur', () => {
+            let v = num((fornDesc.value || '').toString().replace(',', '.')); if (isNaN(v)) v = 0; v = Math.max(0, Math.min(100, v));
+            state.fornecedores[state.fornecedorAtual].desconto = v;
+            fornDesc.value = v.toString().replace('.', ',');
+            save(); renderBody(); renderCards(); atualizaResumoGlobal();
+            flashSaved('desconto atualizado ✓');
+        });
+
+        // Tabela: editar/excluir itens
+        tbody.addEventListener('click', (ev) => {
+            let target = ev.target; if (target && target.nodeType === 3) target = target.parentElement;
+            let btn = target && target.closest ? target.closest('button[data-action]') : null;
+            if (!btn) { let el = target; while (el && el !== tbody) { if (el.matches && el.matches('button[data-action]')) { btn = el; break; } el = el.parentElement; } }
+            if (!btn) return;
+            const idx = parseInt(btn.getAttribute('data-idx'), 10); if (Number.isNaN(idx)) return;
+            const act = btn.getAttribute('data-action');
+            if (act === 'edit') { editar(idx) } else if (act === 'delete') { excluir(idx) }
+        });
+        window.editar = (idx) => {
+            const it = state.itens[idx];
+            const desc = prompt('Descrição:', it.desc); if (desc === null) return;
+            const valor = num(prompt('Valor unitário (R$):', it.valor.toString().replace('.', ','))); if (isNaN(valor)) return;
+            let forn = it.forn ?? 0; const listaF = (state.fornecedores || []).map((f, i) => `${i} - ${f.nome}`).join('\n');
+            const respF = prompt(`Fornecedor (índice):\n${listaF}\n\nAtual: ${forn}`, forn);
+            if (respF !== null) { const f = parseInt(respF, 10); if (!Number.isNaN(f) && f >= 0 && f < state.fornecedores.length) forn = f; }
+            const qtd = [...it.qtd]; for (let i = 0; i < state.nLojas; i++) { const nome = state.lojas?.[i] || `Loja ${i + 1}`; const v = prompt(`Qtd ${nome}:`, (qtd[i] || 0)); if (v === null) return; qtd[i] = num(v); }
+            state.itens[idx] = { desc, valor, qtd, forn }; renderBody(); renderCards(); save();
+        }
+        window.excluir = (idx) => { if (confirm('Excluir este item?')) { state.itens.splice(idx, 1); renderBody(); renderCards(); save(); } }
+
+        // Impressão por loja
+        window.printLoja = (i) => {
+            const lojaNome = state.lojas?.[i] || `Loja ${i + 1}`;
+            const win = window.open('', '_blank');
+            const itens = state.itens.map(x => {
+                const d = fornecedorDesc(x.forn ?? 0), q = num(x.qtd[i] || 0), unit = num(x.valor);
+                return { desc: x.desc, forn: fornecedorNome(x.forn ?? 0), descPerc: d, q, unit, sub: q * unit, subDesc: q * unit * (1 - d / 100) };
+            }).filter(x => x.q > 0);
+            const totalBruto = itens.reduce((s, x) => s + x.sub, 0), totalDesc = itens.reduce((s, x) => s + x.subDesc, 0), economia = totalBruto - totalDesc;
+            const rows = itens.map(x => `<tr><td>${escapeHtml(x.desc)}</td><td>${escapeHtml(x.forn)}</td><td class="num">${x.descPerc.toLocaleString('pt-BR')}%</td><td class="num">${fmt.format(x.unit)}</td><td class="num">${x.q.toLocaleString('pt-BR')}</td><td class="num">${fmt.format(x.subDesc)}</td></tr>`).join('');
+            const html = `<!DOCTYPE html><html lang=pt-BR><head><meta charset=utf-8><title>${escapeHtml(lojaNome)}</title>
+        <style>body{font-family:Arial,sans-serif;margin:28px;color:#111}h2{margin:0 0 8px}.muted{color:#666;margin-bottom:10px}table{width:100%;border-collapse:collapse}th,td{padding:8px;border-bottom:1px solid #ddd}td.num{text-align:right}.sum{margin-top:10px;font-weight:bold}@media print{ .noprint{display:none} }</style></head>
+        <body>
+          <h2>Relatório — ${escapeHtml(lojaNome)}</h2>
+          <div class=muted>ID: ${escapeHtml(state.pedidoId || '—')} • ${new Date(state.criadoEm || Date.now()).toLocaleString('pt-BR')}</div>
+          <table><thead><tr><th>Descrição</th><th>Fornecedor</th><th>Desc. %</th><th>Valor Unit.</th><th>Qtd</th><th>Subtotal (c/ desc.)</th></tr></thead><tbody>${rows || '<tr><td colspan=6 class=num>— sem itens —</td></tr>'}</tbody></table>
+          <div class=sum>Total bruto: ${fmt.format(totalBruto)} • Total c/ desconto: ${fmt.format(totalDesc)} • Economia: ${fmt.format(economia)}</div>
+          <button class=noprint onclick="window.print()">Imprimir</button>
+        </body></html>`;
+            win.document.write(html); win.document.close(); setTimeout(() => { try { win.print() } catch { } }, 300);
+        }
+
+        // RELATÓRIO GERAL
+        btnRelGeral.addEventListener('click', () => {
+            const lojasNomes = (state.lojas || []).map((n, i) => n || `Loja ${i + 1}`);
+            function sectionLoja(i) {
+                const grupos = new Map();
+                state.itens.forEach(it => {
+                    const q = num(it.qtd?.[i] || 0); if (q <= 0) return;
+                    const fornId = (typeof it.forn === 'number') ? it.forn : 0; const nome = fornecedorNome(fornId); const d = fornecedorDesc(fornId);
+                    const unit = num(it.valor); const subBruto = q * unit; const subDesc = subBruto * (1 - d / 100);
+                    if (!grupos.has(fornId)) grupos.set(fornId, { nome, descPerc: d, itens: [], subtotalDesc: 0, subtotalBruto: 0 });
+                    const g = grupos.get(fornId); g.itens.push({ desc: it.desc, valor: unit, qtd: q, subDesc, subBruto }); g.subtotalDesc += subDesc; g.subtotalBruto += subBruto;
+                });
+                const gruposOrd = [...grupos.entries()].sort((a, b) => a[1].nome.localeCompare(b[1].nome, 'pt-BR'));
+                const totalLojaDesc = gruposOrd.reduce((s, [, g]) => s + g.subtotalDesc, 0), totalLojaBruto = gruposOrd.reduce((s, [, g]) => s + g.subtotalBruto, 0);
+                let html = `<section style="margin:18px 0 28px"><h2 style="margin:0 0 6px">${escapeHtml(lojasNomes[i])}</h2><div style="color:#555;margin-bottom:6px">Subtotais com desconto aplicado.</div>`;
+                if (!gruposOrd.length) { html += `<div style="color:#777;margin:6px 0 16px">— Sem itens nesta loja —</div>`; }
+                else gruposOrd.forEach(([id, g]) => {
+                    const linhas = g.itens.map(it => `<tr><td>${escapeHtml(it.desc)}</td><td class="num">${fmt.format(it.valor)}</td><td class="num">${it.qtd.toLocaleString('pt-BR')}</td><td class="num">${fmt.format(it.subDesc)}</td></tr>`).join('');
+                    html += `<h3 style="margin:14px 0 6px">${escapeHtml(g.nome)} <span style="color:#777;font-weight:normal">(desc. ${g.descPerc.toLocaleString('pt-BR')}%)</span></h3>
+            <table style="width:100%;border-collapse:collapse">
+              <thead><tr><th style="text-align:left;border-bottom:1px solid #ccc;padding:6px 4px">Descrição</th><th style="text-align:right;border-bottom:1px solid #ccc;padding:6px 4px">Valor Unit.</th><th style="text-align:right;border-bottom:1px solid #ccc;padding:6px 4px">Qtd</th><th style="text-align:right;border-bottom:1px solid #ccc;padding:6px 4px">Subtotal (c/ desc.)</th></tr></thead>
+              <tbody>${linhas}</tbody>
+              <tfoot><tr><td colspan="3" style="text-align:right;font-weight:bold;padding:6px 4px;border-top:1px solid #ccc">Subtotal ${escapeHtml(g.nome)} (c/ desc.):</td><td class="num" style="font-weight:bold;border-top:1px solid #ccc;padding:6px 4px">${fmt.format(g.subtotalDesc)}</td></tr></tfoot>
+            </table>`;
+                });
+                html += `<div style="margin-top:10px;font-weight:bold">Total da ${escapeHtml(lojasNomes[i])} — Bruto: ${fmt.format(totalLojaBruto)} • c/ desc.: ${fmt.format(totalLojaDesc)} • Economia: ${fmt.format(totalLojaBruto - totalLojaDesc)}</div></section>`;
+                return html;
+            }
+            const doc = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><title>Relatório — Total por Loja e Fornecedor (c/ desconto)</title>
+      <style>body{font-family:Arial,system-ui,Segoe UI,Roboto,sans-serif;color:#111;margin:28px}h1{margin:0 0 8px}h2{margin:18px 0 6px}h3{margin:12px 0 6px}table{width:100%;border-collapse:collapse;margin-bottom:4px}th,td{padding:6px 4px;border-bottom:1px solid #eee}td.num{text-align:right}.muted{color:#666;margin-bottom:10px}@media print{ .noprint{display:none} }</style></head>
+      <body><h1>Relatório — Total por Loja e Fornecedor (c/ desconto)</h1>
+      <div class="muted">ID: ${escapeHtml(state.pedidoId || '—')} • Criado: ${new Date(state.criadoEm || Date.now()).toLocaleString('pt-BR')}</div>
+      <div class="muted">Fornecedores: ${(state.fornecedores || []).map(f => escapeHtml(f.nome)).join(', ') || '—'}</div>
+      ${Array.from({ length: state.nLojas }, (_, i) => sectionLoja(i)).join('')}
+      <button class="noprint" onclick="window.print()">Imprimir</button></body></html>`;
+            const win = window.open('', '_blank'); win.document.write(doc); win.document.close(); setTimeout(() => { try { win.print() } catch { } }, 300);
+        });
+
+        // ===== Histórico =====
+        function snapshotPedido() { const { pedidoId, criadoEm, nLojas, itens, fornecedores, fornecedorAtual, lojas, lojasSalvas } = state; return { pedidoId: pedidoId || genPedidoId(), criadoEm: criadoEm || nowISO(), nLojas, itens, fornecedores, fornecedorAtual, lojas, lojasSalvas, arquivadoEm: nowISO() }; }
+        function arquivarPedido() { ensurePedidoId(); const hist = loadHistorico(); const snap = snapshotPedido(); const idx = hist.findIndex(p => p.pedidoId === snap.pedidoId); if (idx >= 0) { if (!confirm('Já existe pedido com esse ID no histórico. Substituir?')) return; hist[idx] = snap; } else hist.unshift(snap); saveHistorico(hist); flashSaved('arquivado ✓'); if (window.syncPushHistorico) window.syncPushHistorico(snap); }
+        function novoPedido() { if (!confirm('Criar NOVO pedido? Itens atuais serão limpos (listas e lojas permanecem).')) return; state.pedidoId = genPedidoId(); state.criadoEm = nowISO(); state.itens = []; save(); pedidoBadge.textContent = `Pedido: ${state.pedidoId}`; renderBody(); renderCards(); flashSaved('novo ID ✓'); }
+        function openHistorico() { renderHistoricoTable(''); histModal.style.display = 'flex'; histSearch.value = ''; histSearch.focus(); }
+        function closeHistorico() { histModal.style.display = 'none'; }
+        function renderHistoricoTable(filter) {
+            const hist = loadHistorico(); const f = (filter || '').trim().toLowerCase();
+            const rows = hist.filter(p => {
+                if (!f) return true;
+                const fornecedores = (p.fornecedores || []).map(x => x?.nome || '').join(' ').toLowerCase();
+                const lojas = (p.lojas || []).join(' ').toLowerCase();
+                return (p.pedidoId || '').toLowerCase().includes(f) || (p.criadoEm || '').toLowerCase().includes(f) || fornecedores.includes(f) || lojas.includes(f);
+            }).map(p => {
+                const totalDesc = (() => { let sum = 0; (p.itens || []).forEach(it => { const forn = (typeof it.forn === 'number') ? it.forn : 0; const d = ((p.fornecedores || [])[forn]?.desconto) || 0; const fator = (100 - d) / 100; const unit = num(it.valor); for (let i = 0; i < p.nLojas; i++) { const q = num(it.qtd?.[i] || 0); if (q > 0) sum += q * unit * fator; } }); return sum; })();
+                return `<tr>
+          <td><span class="tag">${escapeHtml(p.pedidoId || '—')}</span></td>
+          <td>${p.criadoEm ? new Date(p.criadoEm).toLocaleString('pt-BR') : '—'}</td>
+          <td>${(p.fornecedores || []).length}</td>
+          <td>${(p.lojas || []).length}</td>
+          <td>${(p.itens || []).length}</td>
+          <td class="num">${fmt.format(totalDesc || 0)}</td>
+          <td style="text-align:center"><button class="icon-btn hist-load" data-id="${escapeAttr(p.pedidoId)}" title="Carregar">📂</button><button class="icon-btn hist-del" data-id="${escapeAttr(p.pedidoId)}" title="Excluir" style="border-color:#5a2331;color:#ffb6c1">🗑️</button></td>
+        </tr>`;
+            }).join('') || `<tr><td colspan="7" style="text-align:center;color:#88a">— histórico vazio —</td></tr>`;
+            histBody.innerHTML = rows;
+        }
+        btnArquivar.addEventListener('click', arquivarPedido);
+        btnNovoId.addEventListener('click', novoPedido);
+        btnHistorico.addEventListener('click', openHistorico);
+        histFechar.addEventListener('click', closeHistorico);
+        histModal.addEventListener('click', (e) => { if (e.target === histModal) closeHistorico(); });
+        histSearch.addEventListener('input', () => renderHistoricoTable(histSearch.value));
+        histBody.addEventListener('click', (e) => {
+            const loadBtn = e.target.closest('.hist-load'); const delBtn = e.target.closest('.hist-del');
+            if (loadBtn) {
+                const id = loadBtn.getAttribute('data-id'); const hist = loadHistorico(); const snap = hist.find(p => p.pedidoId === id); if (!snap) { alert('Pedido não encontrado.'); return; }
+                state = { pedidoId: snap.pedidoId, criadoEm: snap.criadoEm, nLojas: snap.nLojas, itens: snap.itens || [], fornecedores: snap.fornecedores || [{ nome: 'Fornecedor', desconto: 0 }], fornecedorAtual: snap.fornecedorAtual || 0, lojas: snap.lojas || [], lojasSalvas: snap.lojasSalvas || [] };
+                migrateFornecedores(); ensureLojasLen(); syncItemQtdLengths(); save();
+                pedidoBadge.textContent = `Pedido: ${state.pedidoId}`; nLojasSel.value = state.nLojas;
+                renderFornecedores(); renderLojasDatalist(); renderHeaders(); renderFormInputs(); renderBody(); renderCards();
+                flashSaved('pedido carregado ✓'); closeHistorico();
+            } else if (delBtn) { const id = delBtn.getAttribute('data-id'); if (!confirm(`Excluir "${id}" do histórico?`)) return; let hist = loadHistorico(); hist = hist.filter(p => p.pedidoId !== id); saveHistorico(hist); renderHistoricoTable(histSearch.value); flashSaved('removido ✓'); }
+        });
+
+        // ===== Inicialização =====
+        function init() {
+            load(); if (!state || typeof state.nLojas !== 'number') { state = { pedidoId: null, criadoEm: null, nLojas: 8, itens: [], fornecedores: [{ nome: 'Fornecedor', desconto: 0 }], fornecedorAtual: 0, lojas: [], lojasSalvas: [] } }
+            migrateFornecedores();
+            if (!Array.isArray(state.lojas)) state.lojas = [];
+            if (!Array.isArray(state.lojasSalvas)) state.lojasSalvas = [];
+            ensurePedidoId(); ensureLojasLen(); syncItemQtdLengths();
+            if (!state.lojasSalvas.length && state.lojas.length) { state.lojasSalvas = dedupe(state.lojas); }
+            nLojasSel.value = state.nLojas;
+            renderFornecedores(); renderLojasDatalist(); renderHeaders(); renderFormInputs(); renderBody(); renderCards();
+
+            // Sync UI
+            const savedKey = localStorage.getItem(SYNC_KEY_LS) || ''; document.getElementById('syncKey').value = savedKey;
+            if (savedKey && window.trySyncConnect) window.trySyncConnect();
+        }
+        init();
+
+        // expõe no window para o módulo de sync usar
+        window.state = state;
+        window.save = save;
+        window.loadHistorico = loadHistorico;
+        window.saveHistorico = saveHistorico;
+        window.renderFornecedores = renderFornecedores;
+        window.renderLojasDatalist = renderLojasDatalist;
+        window.renderHeaders = renderHeaders;
+        window.renderFormInputs = renderFormInputs;
+        window.renderBody = renderBody;
+        window.renderCards = renderCards;
+        window.ensureLojasLen = ensureLojasLen;
+        window.syncItemQtdLengths = syncItemQtdLengths;
+        window.flashSaved = flashSaved;
+    </script>
+
+    <!-- ===== Firebase (modular) + Sync TUDO ===== -->
+    <script type="module">
+        // 1) PREENCHA com o config do seu projeto Firebase:
+        const FIREBASE_CONFIG = {
+            apiKey: "SUA_API_KEY",
+            authDomain: "SEU_PROJETO.firebaseapp.com",
+            projectId: "SEU_PROJETO",
+            appId: "SUA_APP_ID"
+        };
+
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
+        import { getFirestore, doc, onSnapshot, setDoc, getDoc, collection, onSnapshot as onColSnap, enableIndexedDbPersistence, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+
+        let app = null, db = null, unsubRoot = null, unsubHist = null, pushing = false;
+        const syncKeyInput = document.getElementById('syncKey');
+        const btnSyncToggle = document.getElementById('btnSyncToggle');
+        const syncBadge = document.getElementById('syncBadge');
+        const SYNC_KEY_LS = 'pedido-multiloja-sync-key';
+
+        function setBadge(txt, good = false) {
+            syncBadge.textContent = txt;
+            syncBadge.classList.toggle('good', good);
+            syncBadge.classList.toggle('bad', !good);
+        }
+
+        function initFirebase() {
+            if (!FIREBASE_CONFIG || !FIREBASE_CONFIG.projectId) { setBadge('sync: desligado'); return false; }
+            try {
+                app = initializeApp(FIREBASE_CONFIG);
+                db = getFirestore(app);
+                enableIndexedDbPersistence(db).catch(() => { });
+                return true;
+            } catch (e) { console.error(e); setBadge('sync: erro'); return false; }
+        }
+
+        // Debounce de push
+        let tPush = null;
+        function syncSchedule() { clearTimeout(tPush); tPush = setTimeout(syncPushImmediate, 400); }
+        window.syncSchedule = syncSchedule;
+
+        async function syncPushImmediate() {
+            if (!db) if (!initFirebase()) return;
+            const key = (localStorage.getItem(SYNC_KEY_LS) || '').trim(); if (!key) return;
+            const ref = doc(db, 'datasets', key);
+            const st = window.state || {};
+            const payload = {
+                fornecedores: st.fornecedores || [{ nome: 'Fornecedor', desconto: 0 }],
+                lojasSalvas: st.lojasSalvas || [],
+                pedido: {
+                    pedidoId: st.pedidoId, criadoEm: st.criadoEm,
+                    nLojas: st.nLojas, fornecedorAtual: st.fornecedorAtual,
+                    lojas: st.lojas || [], itens: st.itens || [],
+                    updatedAt: serverTimestamp()
+                },
+                updatedAt: serverTimestamp()
+            };
+            try {
+                pushing = true;
+                await setDoc(ref, payload, { merge: true });
+                setBadge('sync: enviado ✓', true);
+            } catch (e) {
+                console.error(e); setBadge('sync: erro envio', false);
+            } finally {
+                pushing = false;
+            }
+        }
+        window.syncPush = syncPushImmediate;
+
+        // Histórico: push individual
+        async function syncPushHistorico(snap) {
+            if (!db) if (!initFirebase()) return;
+            const key = (localStorage.getItem(SYNC_KEY_LS) || '').trim(); if (!key) return;
+            try {
+                const r = doc(db, 'datasets', key, 'historico', snap.pedidoId);
+                await setDoc(r, { ...snap, updatedAt: serverTimestamp() }, { merge: true });
+                setBadge('histórico enviado ✓', true);
+            } catch (e) { console.error(e); setBadge('hist: erro envio', false); }
+        }
+        window.syncPushHistorico = syncPushHistorico;
+
+        async function syncConnect(key) {
+            if (!db && !initFirebase()) return;
+            key = (key || '').trim();
+            if (!key) { setBadge('sync: sem chave', false); return; }
+            localStorage.setItem(SYNC_KEY_LS, key);
+            if (unsubRoot) { try { unsubRoot() } catch { } unsubRoot = null; }
+            if (unsubHist) { try { unsubHist() } catch { } unsubHist = null; }
+
+            const ref = doc(db, 'datasets', key);
+            // cria doc se não existir
+            const snap = await getDoc(ref);
+            if (!snap.exists()) {
+                await setDoc(ref, {
+                    fornecedores: (window.state?.fornecedores) || [{ nome: 'Fornecedor', desconto: 0 }],
+                    lojasSalvas: (window.state?.lojasSalvas) || [],
+                    pedido: {
+                        pedidoId: window.state?.pedidoId, criadoEm: window.state?.criadoEm,
+                        nLojas: window.state?.nLojas, fornecedorAtual: window.state?.fornecedorAtual,
+                        lojas: window.state?.lojas || [], itens: window.state?.itens || [],
+                        updatedAt: serverTimestamp()
+                    },
+                    updatedAt: serverTimestamp()
+                }, { merge: true });
+            }
+
+            // escuta mudanças do ROOT (catálogo + pedido)
+            unsubRoot = onSnapshot(ref, (s) => {
+                if (!s.exists()) return;
+                const data = s.data() || {};
+                if (pushing) return; // evita eco do próprio envio
+                let changed = false;
+
+                // fornecedores / lojasSalvas
+                if (Array.isArray(data.fornecedores)) {
+                    const a = JSON.stringify((window.state?.fornecedores) || []);
+                    const b = JSON.stringify(data.fornecedores);
+                    if (a !== b) { window.state.fornecedores = data.fornecedores; changed = true; }
+                }
+                if (Array.isArray(data.lojasSalvas)) {
+                    const a = JSON.stringify((window.state?.lojasSalvas) || []);
+                    const b = JSON.stringify(data.lojasSalvas);
+                    if (a !== b) { window.state.lojasSalvas = data.lojasSalvas; changed = true; }
+                }
+
+                // pedido atual
+                if (data.pedido) {
+                    const local = window.state || {};
+                    const remote = data.pedido;
+                    const a = JSON.stringify({
+                        pedidoId: local.pedidoId, criadoEm: local.criadoEm, nLojas: local.nLojas,
+                        fornecedorAtual: local.fornecedorAtual, lojas: local.lojas, itens: local.itens
+                    });
+                    const b = JSON.stringify({
+                        pedidoId: remote.pedidoId, criadoEm: remote.criadoEm, nLojas: remote.nLojas,
+                        fornecedorAtual: remote.fornecedorAtual, lojas: remote.lojas, itens: remote.itens
+                    });
+                    if (a !== b) {
+                        window.state.pedidoId = remote.pedidoId || window.state.pedidoId;
+                        window.state.criadoEm = remote.criadoEm || window.state.criadoEm;
+                        window.state.nLojas = remote.nLojas || window.state.nLojas;
+                        window.state.fornecedorAtual = (typeof remote.fornecedorAtual === 'number') ? remote.fornecedorAtual : window.state.fornecedorAtual;
+                        window.state.lojas = Array.isArray(remote.lojas) ? remote.lojas : window.state.lojas;
+                        window.state.itens = Array.isArray(remote.itens) ? remote.itens : window.state.itens;
+                        changed = true;
+                    }
+                }
+
+                if (changed) {
+                    if (typeof window.migrateFornecedores === 'function') window.migrateFornecedores();
+                    if (typeof window.ensureLojasLen === 'function') window.ensureLojasLen();
+                    if (typeof window.syncItemQtdLengths === 'function') window.syncItemQtdLengths();
+                    if (typeof window.save === 'function') window.save(); // salva local e agenda próximo push (mantém convergência)
+                    // re-render
+                    if (typeof window.renderFornecedores === 'function') window.renderFornecedores();
+                    if (typeof window.renderLojasDatalist === 'function') window.renderLojasDatalist();
+                    if (typeof window.renderHeaders === 'function') window.renderHeaders();
+                    if (typeof window.renderFormInputs === 'function') window.renderFormInputs();
+                    if (typeof window.renderBody === 'function') window.renderBody();
+                    if (typeof window.renderCards === 'function') window.renderCards();
+                    if (typeof window.flashSaved === 'function') window.flashSaved('sync recebido ✓');
+                }
+            });
+
+            // escuta histórico (subcoleção)
+            const cref = collection(db, 'datasets', key, 'historico');
+            unsubHist = onColSnap(cref, (qs) => {
+                const rem = []; qs.forEach(d => rem.push(d.data()));
+                // merge com local
+                let histLocal = (window.loadHistorico && window.loadHistorico()) || [];
+                const idxById = new Map(histLocal.map((p, i) => [p.pedidoId, i]));
+                rem.forEach(p => {
+                    const i = idxById.get(p.pedidoId);
+                    if (i == null) { histLocal.unshift(p); }
+                    else { histLocal[i] = p; }
+                });
+                if (window.saveHistorico) window.saveHistorico(histLocal);
+                // se modal aberto, atualiza tabela
+                const modal = document.getElementById('histModal');
+                if (modal && modal.style.display === 'flex' && window.renderHistoricoTable) window.renderHistoricoTable(document.getElementById('histSearch').value);
+                setBadge('sync: conectado', true);
+            });
+
+            setBadge('sync: conectado', true);
+            btnSyncToggle.textContent = 'Desconectar';
+        }
+
+        async function syncDisconnect() {
+            if (unsubRoot) { try { unsubRoot() } catch { } unsubRoot = null; }
+            if (unsubHist) { try { unsubHist() } catch { } unsubHist = null; }
+            setBadge('sync: desligado'); btnSyncToggle.textContent = 'Conectar';
+        }
+
+        // UI (botão Conectar/Desconectar)
+btnSyncToggle.addEventListener('click', async () => {
+  if (btnSyncToggle.textContent.includes('Desconectar')) {
+    await syncDisconnect();
+    return;
+  }
+  const key = syncKeyInput.value.trim();
+  await syncConnect(key);
+});
+
+// tentar auto-conectar se já existe chave salva
+window.trySyncConnect = async () => {
+  const k = (localStorage.getItem(SYNC_KEY_LS) || '').trim();
+  if (!k) return;
+  await syncConnect(k);
+  syncKeyInput.value = k;
+};
+
+    </script>
+</body>
+
+</html>
