@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
@@ -444,10 +444,10 @@
                         <button class="icon-btn" id="btnFornAdd" title="Adicionar fornecedor">＋</button>
                         <div class="stack">
                             <label for="fornDesc">Desconto (%)</label>
-                            <input id="fornDesc" class="inp-perc" type="number" inputmode="decimal"
-                                   step="0.1" min="0" max="100" placeholder="0" title="Desconto deste fornecedor (%)">
-                          </div>
-                          
+                            <input id="fornDesc" class="inp-perc" type="number" inputmode="decimal" step="0.1" min="0"
+                                max="100" placeholder="0" title="Desconto deste fornecedor (%)">
+                        </div>
+
                     </div>
                     <div class="hint">Desconto é aplicado nos totais e relatórios desse fornecedor.</div>
                 </div>
@@ -837,26 +837,152 @@
         window.excluir = (idx) => { if (confirm('Excluir este item?')) { state.itens.splice(idx, 1); renderBody(); renderCards(); save(); } }
 
         // Impressão por loja
+        // ============ IMPRESSÃO POR LOJA — LAYOUT TIPO FORMULÁRIO ============
         window.printLoja = (i) => {
-            const lojaNome = state.lojas?.[i] || `Loja ${i + 1}`;
-            const win = window.open('', '_blank');
+            const lojaNome = (state.lojas?.[i]) || `Loja ${i + 1}`;
+            const pedidoId = state.pedidoId || '—';
+            const dt = new Date(state.criadoEm || Date.now());
+
+            // monta itens da loja aplicando % de desconto do fornecedor de cada item
             const itens = state.itens.map(x => {
-                const d = fornecedorDesc(x.forn ?? 0), q = num(x.qtd[i] || 0), unit = num(x.valor);
-                return { desc: x.desc, forn: fornecedorNome(x.forn ?? 0), descPerc: d, q, unit, sub: q * unit, subDesc: q * unit * (1 - d / 100) };
+                const fornId = (typeof x.forn === 'number') ? x.forn : 0;
+                const fn = state.fornecedores?.[fornId];
+                const fornNm = fn?.nome || `Fornecedor ${fornId}`;
+                const descPc = Math.max(0, Math.min(100, fn?.desconto || 0));
+                const q = num(x.qtd?.[i] || 0);
+                const unit = num(x.valor);
+                return {
+                    desc: x.desc, fornNm, descPc, q, unit,
+                    subBruto: q * unit, subDesc: q * unit * (1 - descPc / 100)
+                };
             }).filter(x => x.q > 0);
-            const totalBruto = itens.reduce((s, x) => s + x.sub, 0), totalDesc = itens.reduce((s, x) => s + x.subDesc, 0), economia = totalBruto - totalDesc;
-            const rows = itens.map(x => `<tr><td>${escapeHtml(x.desc)}</td><td>${escapeHtml(x.forn)}</td><td class="num">${x.descPerc.toLocaleString('pt-BR')}%</td><td class="num">${fmt.format(x.unit)}</td><td class="num">${x.q.toLocaleString('pt-BR')}</td><td class="num">${fmt.format(x.subDesc)}</td></tr>`).join('');
-            const html = `<!DOCTYPE html><html lang=pt-BR><head><meta charset=utf-8><title>${escapeHtml(lojaNome)}</title>
-        <style>body{font-family:Arial,sans-serif;margin:28px;color:#111}h2{margin:0 0 8px}.muted{color:#666;margin-bottom:10px}table{width:100%;border-collapse:collapse}th,td{padding:8px;border-bottom:1px solid #ddd}td.num{text-align:right}.sum{margin-top:10px;font-weight:bold}@media print{ .noprint{display:none} }</style></head>
-        <body>
-          <h2>Relatório — ${escapeHtml(lojaNome)}</h2>
-          <div class=muted>ID: ${escapeHtml(state.pedidoId || '—')} • ${new Date(state.criadoEm || Date.now()).toLocaleString('pt-BR')}</div>
-          <table><thead><tr><th>Descrição</th><th>Fornecedor</th><th>Desc. %</th><th>Valor Unit.</th><th>Qtd</th><th>Subtotal (c/ desc.)</th></tr></thead><tbody>${rows || '<tr><td colspan=6 class=num>— sem itens —</td></tr>'}</tbody></table>
-          <div class=sum>Total bruto: ${fmt.format(totalBruto)} • Total c/ desconto: ${fmt.format(totalDesc)} • Economia: ${fmt.format(economia)}</div>
-          <button class=noprint onclick="window.print()">Imprimir</button>
-        </body></html>`;
-            win.document.write(html); win.document.close(); setTimeout(() => { try { win.print() } catch { } }, 300);
-        }
+
+            const fornecedoresLista = [...new Map(
+                itens.map(x => [x.fornNm, x.descPc])
+            ).entries()]
+                .map(([n, p]) => `${n} (${p.toLocaleString('pt-BR')}%)`)
+                .join(' • ') || '—';
+
+            const totalBruto = itens.reduce((s, x) => s + x.subBruto, 0);
+            const totalDesc = itens.reduce((s, x) => s + x.subDesc, 0);
+            const economia = totalBruto - totalDesc;
+
+            const rows = itens.map(x => `
+    <tr>
+      <td>${escapeHtml(x.desc)}</td>
+      <td class="num">${fmt.format(x.unit)}</td>
+      <td class="num">${x.q.toLocaleString('pt-BR')}</td>
+      <td class="num">${fmt.format(x.subDesc)}</td>
+      <td>${escapeHtml(x.fornNm)}</td>
+    </tr>`).join('');
+
+            const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8">
+    <title>Formulário — ${escapeHtml(lojaNome)}</title>
+    <style>
+      @page { size: A4 portrait; margin: 10mm }
+      :root{ --ink:#111; --mut:#666; --line:#ccd3dd; --box:#e9edf3; }
+      body{ font:12px/1.35 Arial,system-ui,sans-serif; color:var(--ink); margin:0 }
+      .wrap{ padding:0 }
+      /* Cabeçalho em GRID: 3 blocos alinhados (fácil de mover/reordenar) */
+      .cab{ display:grid; grid-template-columns: 1.2fr 1fr 1fr; gap:8px; margin-bottom:10px }
+      .campo{ border:1px solid var(--line); padding:6px 8px; border-radius:6px; background:#fff }
+      .rot{ font-size:10px; color:var(--mut); letter-spacing:.04em; text-transform:uppercase }
+      .val{ font-size:13px; font-weight:600 }
+      .titulo{ grid-column:1 / -1; display:flex; justify-content:space-between; align-items:flex-end; }
+      .titulo h1{ margin:0; font-size:20px }
+      .titulo .id{ font-size:12px; color:var(--mut) }
+
+      table{ width:100%; border-collapse:collapse; margin-top:6px }
+      th,td{ padding:6px 5px; border-bottom:1px solid var(--line) }
+      th{ background:var(--box); text-align:left; font-size:11px }
+      td.num{ text-align:right }
+
+      .totais{ display:flex; gap:12px; justify-content:flex-end; margin-top:10px; }
+      .totais .campo{ min-width:210px }
+      .assin{ display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:18px }
+      .linha{ border-top:1px solid var(--ink); height:38px; }
+      .label-assin{ font-size:10px; color:var(--mut); margin-top:2px; text-align:center }
+
+      @media print{ .noprint{ display:none } }
+    </style>
+  </head><body>
+    <div class="wrap">
+      <!-- TÍTULO -->
+      <div class="titulo">
+        <h1>Formulário de Pedido por Loja</h1>
+        <div class="id">Pedido: <b>${escapeHtml(pedidoId)}</b> • ${dt.toLocaleString('pt-BR')}</div>
+      </div>
+
+      <!-- CABEÇALHO — pode trocar a ordem dos blocos à vontade -->
+      <div class="cab">
+        <div class="campo">
+          <div class="rot">Loja</div>
+          <div class="val">${escapeHtml(lojaNome)}</div>
+        </div>
+        <div class="campo">
+          <div class="rot">Fornecedor(es) e descontos</div>
+          <div class="val">${escapeHtml(fornecedoresLista)}</div>
+        </div>
+        <div class="campo">
+          <div class="rot">Observação</div>
+          <div class="val">&nbsp;</div>
+        </div>
+      </div>
+
+      <!-- ITENS -->
+      <table>
+        <thead>
+          <tr>
+            <th>Descrição</th>
+            <th class="num">Valor Unit.</th>
+            <th class="num">Qtd</th>
+            <th class="num">Subtotal (c/ desc.)</th>
+            <th>Fornecedor</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows || '<tr><td colspan="5" class="num">— sem itens —</td></tr>'}
+        </tbody>
+      </table>
+
+      <!-- TOTAIS -->
+      <div class="totais">
+        <div class="campo">
+          <div class="rot">Total bruto</div>
+          <div class="val">${fmt.format(totalBruto)}</div>
+        </div>
+        <div class="campo">
+          <div class="rot">Total com desconto</div>
+          <div class="val">${fmt.format(totalDesc)}</div>
+        </div>
+        <div class="campo">
+          <div class="rot">Economia</div>
+          <div class="val">${fmt.format(economia)}</div>
+        </div>
+      </div>
+
+      <!-- ASSINATURAS -->
+      <div class="assin">
+        <div>
+          <div class="linha"></div>
+          <div class="label-assin">Assinatura / Carimbo</div>
+        </div>
+        <div>
+          <div class="linha"></div>
+          <div class="label-assin">Recebido por</div>
+        </div>
+      </div>
+
+      <button class="noprint" onclick="window.print()" style="margin-top:14px">Imprimir</button>
+    </div>
+  </body></html>`;
+
+            const win = window.open('', '_blank');
+            win.document.write(html);
+            win.document.close();
+            setTimeout(() => { try { win.print(); } catch { } }, 300);
+        };
+
 
         // RELATÓRIO GERAL
         btnRelGeral.addEventListener('click', () => {
@@ -1167,25 +1293,24 @@
         }
 
         // UI (botão Conectar/Desconectar)
-btnSyncToggle.addEventListener('click', async () => {
-  if (btnSyncToggle.textContent.includes('Desconectar')) {
-    await syncDisconnect();
-    return;
-  }
-  const key = syncKeyInput.value.trim();
-  await syncConnect(key);
-});
+        btnSyncToggle.addEventListener('click', async () => {
+            if (btnSyncToggle.textContent.includes('Desconectar')) {
+                await syncDisconnect();
+                return;
+            }
+            const key = syncKeyInput.value.trim();
+            await syncConnect(key);
+        });
 
-// tentar auto-conectar se já existe chave salva
-window.trySyncConnect = async () => {
-  const k = (localStorage.getItem(SYNC_KEY_LS) || '').trim();
-  if (!k) return;
-  await syncConnect(k);
-  syncKeyInput.value = k;
-};
+        // tentar auto-conectar se já existe chave salva
+        window.trySyncConnect = async () => {
+            const k = (localStorage.getItem(SYNC_KEY_LS) || '').trim();
+            if (!k) return;
+            await syncConnect(k);
+            syncKeyInput.value = k;
+        };
 
     </script>
 </body>
-
 
 </html>
