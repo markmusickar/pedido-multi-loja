@@ -899,9 +899,7 @@
     </tr>
   `).join('');
 
-            const digitDefault = localStorage.getItem('digitadorNome') || '';
-            const digitador = prompt('Nome do digitador (opcional):', digitDefault);
-            if (digitador !== null) localStorage.setItem('digitadorNome', digitador || '');
+            const digitador = 'João da Silva'; // nome fixo do digitador
 
             const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8">
   <title>Pedido — ${escapeHtml(lojaNome)}</title>
@@ -1348,4 +1346,5 @@
 </body>
 
 </html>
+
 
